@@ -1,0 +1,7 @@
+{
+  "name": "Ionic5GooglePlaces",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
