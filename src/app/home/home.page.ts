@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, NgZone, AfterViewInit } from '@angular/core';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { NativeGeocoder, NativeGeocoderResult, NativeGeocoderOptions } from '@ionic-native/native-geocoder/ngx';
 
@@ -9,7 +9,7 @@ declare var google;
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
 })
-export class HomePage {
+export class HomePage implements OnInit, AfterViewInit{
 
   @ViewChild('map',  {static: false}) mapElement: ElementRef;
   map: any;
@@ -32,36 +32,38 @@ export class HomePage {
     this.autocomplete = { input: '' };
     this.autocompleteItems = [];
   }
- 
-  //LOAD THE MAP ONINIT.
-  ngOnInit() {
-    this.loadMap();    
+  ngOnInit() {  
   }
-
+  //LOAD THE MAP ONINIT.
+  ngAfterViewInit(): void {
+    this.loadMap();  
+  }
   //LOADING THE MAP HAS 2 PARTS.
   loadMap() {
-    
+    let latLng = {"lat": 29.082812949965437, "lng": 48.13064520888102}
+    let mapOptions = {
+      center: latLng,
+      zoom: 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    } 
+    this.map = new google.maps.Map(this.mapElement.nativeElement, mapOptions); 
     //FIRST GET THE LOCATION FROM THE DEVICE.
     this.geolocation.getCurrentPosition().then((resp) => {
       let latLng = new google.maps.LatLng(resp.coords.latitude, resp.coords.longitude);
-      let mapOptions = {
-        center: latLng,
-        zoom: 15,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      } 
       
+      this.map.setCenter(latLng);
       //LOAD THE MAP WITH THE PREVIOUS VALUES AS PARAMETERS.
       this.getAddressFromCoords(resp.coords.latitude, resp.coords.longitude); 
-      this.map = new google.maps.Map(this.mapElement.nativeElement, mapOptions); 
-      this.map.addListener('tilesloaded', () => {
-        console.log('accuracy',this.map, this.map.center.lat());
-        this.getAddressFromCoords(this.map.center.lat(), this.map.center.lng())
-        this.lat = this.map.center.lat()
-        this.long = this.map.center.lng()
-      }); 
+      
     }).catch((error) => {
       console.log('Error getting location', error);
     });
+    this.map.addListener('tilesloaded', () => {
+      console.log('accuracy',this.map, this.map.center.lat());
+      this.getAddressFromCoords(this.map.center.lat(), this.map.center.lng())
+      this.lat = this.map.center.lat()
+      this.long = this.map.center.lng()
+    }); 
   }
 
   
